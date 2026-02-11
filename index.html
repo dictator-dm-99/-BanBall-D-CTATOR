@@ -21,6 +21,7 @@ th{background:#3a260c;color:#f3c87a;padding:8px;border:1px solid #555;}
 td{background:#eee;border:1px solid #888;padding:4px;}
 tfoot td{background:#111;color:white;font-weight:bold;}
 button{padding:4px 10px;margin:4px;}
+button[disabled]{opacity:.4;cursor:not-allowed;}
 #auditBox{
   display:none;width:95%;margin:auto;background:#111;color:#0f0;
   text-align:left;padding:10px;height:120px;overflow:auto;font-size:12px;
@@ -43,8 +44,8 @@ button{padding:4px 10px;margin:4px;}
 <input type="date" id="dateTop">
 
 <div>
-<button onclick="addRow()">+ เพิ่ม</button>
-<button onclick="save()">Save</button>
+<button id="btnAdd" onclick="addRow()">+ เพิ่ม</button>
+<button id="btnSave" onclick="save()">Save</button>
 <button onclick="toggleAudit()">Audit Log</button>
 </div>
 
@@ -78,7 +79,7 @@ button{padding:4px 10px;margin:4px;}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
-const firebaseConfig = {
+firebase.initializeApp({
   apiKey: "AIzaSyBvEX2qy63fTtzB1juZlJ8TL2VNVwJ9izE",
   authDomain: "banball-dm-99.firebaseapp.com",
   databaseURL: "https://banball-dm-99-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -86,65 +87,56 @@ const firebaseConfig = {
   storageBucket: "banball-dm-99.firebasestorage.app",
   messagingSenderId: "418915368955",
   appId: "1:418915368955:web:fe42df82c554b992b9d55e"
-};
+});
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-let admin=false;
-let audit=[];
-let saveTimer;
-
-function log(txt){
-  let t=new Date().toLocaleString();
-  audit.unshift(`[${t}] ${txt}`);
-  document.getElementById("auditBox").innerText=audit.join("\n");
-}
+const db=firebase.database();
+let admin=false, saveTimer;
 
 function login(){
   if(user.value==="Yohan888" && pass.value==="dictator_yohan888"){
     admin=true;
     alert("Login สำเร็จ");
-    setEditable(true);
-    log("LOGIN");
+    setUI();
   }else alert("ผิด");
 }
 
 function logout(){
   admin=false;
-  setEditable(false);
-  log("LOGOUT");
+  setUI();
 }
 
-function setEditable(v){
-  document.querySelectorAll("input").forEach(i=>{
-    if(!i.closest(".loginBox")) i.disabled=!v;
-  });
+function setUI(){
+  document.querySelectorAll("#table input").forEach(i=>i.disabled=!admin);
+  document.getElementById("btnAdd").disabled=!admin;
+  document.getElementById("btnSave").disabled=!admin;
 }
 
 function addRow(){
-  let tb=document.querySelector("#table tbody");
-  let r=tb.insertRow();
-  for(let i=0;i<7;i++){
-    let c=r.insertCell();
-    c.innerHTML="<input>";
-  }
-  r.insertCell().innerHTML='<button onclick="this.parentNode.parentNode.remove();calc();save()">X</button>';
+  if(!admin) return;
+  let r=table.tBodies[0].insertRow();
+  for(let i=0;i<7;i++) r.insertCell().innerHTML="<input>";
+  r.insertCell().innerHTML=`<button onclick="removeRow(this)">X</button>`;
+  save();
+}
+
+function removeRow(btn){
+  if(!admin) return;
+  btn.closest("tr").remove();
+  calc();
+  save();
 }
 
 function calc(){
   let sum=0;
   document.querySelectorAll("#table tbody tr").forEach(r=>{
-    sum+=parseFloat(r.cells[6].children[0].value)||0;
+    sum+=parseFloat(r.cells[6].querySelector("input")?.value)||0;
   });
-  sum.innerText;
   document.getElementById("sum").innerText=sum.toLocaleString();
 }
 
-/* auto save แบบ delay */
 document.addEventListener("input",()=>{
-  calc();
   if(!admin) return;
+  calc();
   clearTimeout(saveTimer);
   saveTimer=setTimeout(save,500);
 });
@@ -154,34 +146,25 @@ function save(){
   let data=[];
   document.querySelectorAll("#table tbody tr").forEach(r=>{
     let row=[];
-    for(let i=0;i<7;i++) row.push(r.cells[i].children[0].value);
+    for(let i=0;i<7;i++) row.push(r.cells[i].querySelector("input").value);
     data.push(row);
   });
   db.ref("table").set(data);
-  log("SAVE");
 }
 
-function toggleAudit(){
-  let a=document.getElementById("auditBox");
-  a.style.display=a.style.display==="none"?"block":"none";
-}
-
-/* realtime load */
 db.ref("table").on("value",snap=>{
-  let tb=document.querySelector("#table tbody");
+  let tb=table.tBodies[0];
   tb.innerHTML="";
   (snap.val()||[]).forEach(row=>{
     let r=tb.insertRow();
-    row.forEach(v=>{
-      let c=r.insertCell();
-      c.innerHTML="<input value='"+v+"'>";
-    });
-    r.insertCell().innerHTML='<button onclick="this.parentNode.parentNode.remove();calc();save()">X</button>';
+    row.forEach(v=>r.insertCell().innerHTML=`<input value="${v}" disabled>`);
+    r.insertCell().innerHTML=admin?`<button onclick="removeRow(this)">X</button>`:"";
   });
   calc();
+  setUI();
 });
 
-setEditable(false);
+setUI();
 </script>
 
 </body>
