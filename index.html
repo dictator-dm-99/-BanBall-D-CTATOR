@@ -5,98 +5,25 @@
 <title>D!CTATOR</title>
 
 <style>
-body{
-  background:black;
-  color:white;
-  font-family:Arial;
-  text-align:center;
-}
-
-.logoText{
-  font-size:48px;
-  font-weight:bold;
-  margin:10px;
-}
-
+body{background:black;color:white;font-family:Arial;text-align:center;}
+.logoText{font-size:48px;font-weight:bold;margin:10px;}
 .leagueHeader{
-  width:95%;
-  margin:10px auto;
-  padding:10px;
-  background:#111;
-  color:white;
-  font-size:20px;
-  border-bottom:2px solid #444;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:12px;
+  width:95%;margin:10px auto;padding:10px;background:#111;
+  color:white;font-size:20px;border-bottom:2px solid #444;
+  display:flex;justify-content:center;align-items:center;gap:12px;
 }
-
-.leagueHeader img{
-  height:36px;
-  background:white;
-  padding:4px;
-  border-radius:4px;
-}
-
-input{
-  width:95%;
-  padding:6px;
-  background:#ddd;
-  border:1px solid #888;
-  text-align:center;
-}
-
-.loginBox input{
-  width:160px;
-  margin:4px;
-}
-
-#dateTop{
-  width:200px;
-}
-
-table{
-  width:95%;
-  margin:auto;
-  border-collapse:collapse;
-}
-
-th{
-  background:#3a260c;
-  color:#f3c87a;
-  padding:8px;
-  border:1px solid #555;
-}
-
-td{
-  background:#eee;
-  border:1px solid #888;
-  padding:4px;
-}
-
-tfoot td{
-  background:#111;
-  color:white;
-  font-weight:bold;
-}
-
-button{
-  padding:4px 10px;
-  margin:4px;
-}
-
+.leagueHeader img{height:36px;background:white;padding:4px;border-radius:4px;}
+input{width:95%;padding:6px;background:#ddd;border:1px solid #888;text-align:center;}
+.loginBox input{width:160px;margin:4px;}
+#dateTop{width:200px;}
+table{width:95%;margin:auto;border-collapse:collapse;}
+th{background:#3a260c;color:#f3c87a;padding:8px;border:1px solid #555;}
+td{background:#eee;border:1px solid #888;padding:4px;}
+tfoot td{background:#111;color:white;font-weight:bold;}
+button{padding:4px 10px;margin:4px;}
 #auditBox{
-  display:none;
-  width:95%;
-  margin:auto;
-  background:#111;
-  color:#0f0;
-  text-align:left;
-  padding:10px;
-  height:120px;
-  overflow:auto;
-  font-size:12px;
+  display:none;width:95%;margin:auto;background:#111;color:#0f0;
+  text-align:left;padding:10px;height:120px;overflow:auto;font-size:12px;
 }
 </style>
 </head>
@@ -113,7 +40,6 @@ button{
 </div>
 
 <h3>น้ำ 0.85</h3>
-
 <input type="date" id="dateTop">
 
 <div>
@@ -130,18 +56,12 @@ button{
 <table id="table">
 <thead>
 <tr>
-<th>เวลา</th>
-<th>ทีมเจ้าบ้าน</th>
-<th>ราคาบอล</th>
-<th>ทีมเยือน</th>
-<th>รายชื่อ</th>
-<th>เบอร์โทร</th>
-<th>ยอดแทง</th>
-<th>-</th>
+<th>เวลา</th><th>ทีมเจ้าบ้าน</th><th>ราคาบอล</th>
+<th>ทีมเยือน</th><th>รายชื่อ</th><th>เบอร์โทร</th>
+<th>ยอดแทง</th><th>-</th>
 </tr>
 </thead>
 <tbody></tbody>
-
 <tfoot>
 <tr>
 <td colspan="6">รวมทั้งหมด</td>
@@ -161,7 +81,7 @@ button{
 const firebaseConfig = {
   apiKey: "AIzaSyBvEX2qy63fTtzB1juZlJ8TL2VNVwJ9izE",
   authDomain: "banball-dm-99.firebaseapp.com",
-  databaseURL: "https://banball-dm-99-default-rtdb.firebaseio.com/",
+  databaseURL: "https://banball-dm-99-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "banball-dm-99",
   storageBucket: "banball-dm-99.firebasestorage.app",
   messagingSenderId: "418915368955",
@@ -173,6 +93,7 @@ const db = firebase.database();
 
 let admin=false;
 let audit=[];
+let saveTimer;
 
 function log(txt){
   let t=new Date().toLocaleString();
@@ -181,23 +102,18 @@ function log(txt){
 }
 
 function login(){
-  let u=user.value;
-  let p=pass.value;
-
-  if(u==="Yohan888" && p==="dictator_yohan888"){
+  if(user.value==="Yohan888" && pass.value==="dictator_yohan888"){
     admin=true;
     alert("Login สำเร็จ");
-    log("LOGIN");
     setEditable(true);
-  }else{
-    alert("ผิด");
-  }
+    log("LOGIN");
+  }else alert("ผิด");
 }
 
 function logout(){
   admin=false;
-  log("LOGOUT");
   setEditable(false);
+  log("LOGOUT");
 }
 
 function setEditable(v){
@@ -213,34 +129,36 @@ function addRow(){
     let c=r.insertCell();
     c.innerHTML="<input>";
   }
-  r.insertCell().innerHTML='<button onclick="this.parentNode.parentNode.remove();calc()">X</button>';
+  r.insertCell().innerHTML='<button onclick="this.parentNode.parentNode.remove();calc();save()">X</button>';
 }
 
 function calc(){
   let sum=0;
   document.querySelectorAll("#table tbody tr").forEach(r=>{
-    let v=parseFloat(r.cells[6].children[0].value)||0;
-    sum+=v;
+    sum+=parseFloat(r.cells[6].children[0].value)||0;
   });
+  sum.innerText;
   document.getElementById("sum").innerText=sum.toLocaleString();
 }
 
-document.addEventListener("input",calc);
+/* auto save แบบ delay */
+document.addEventListener("input",()=>{
+  calc();
+  if(!admin) return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(save,500);
+});
 
 function save(){
-  if(!admin) return alert("ต้อง login");
-
+  if(!admin) return;
   let data=[];
   document.querySelectorAll("#table tbody tr").forEach(r=>{
     let row=[];
-    for(let i=0;i<7;i++){
-      row.push(r.cells[i].children[0].value);
-    }
+    for(let i=0;i<7;i++) row.push(r.cells[i].children[0].value);
     data.push(row);
   });
-
   db.ref("table").set(data);
-  log("SAVE TABLE");
+  log("SAVE");
 }
 
 function toggleAudit(){
@@ -248,21 +166,18 @@ function toggleAudit(){
   a.style.display=a.style.display==="none"?"block":"none";
 }
 
-/* โหลดข้อมูล realtime */
-db.ref("table").on("value", snap=>{
+/* realtime load */
+db.ref("table").on("value",snap=>{
   let tb=document.querySelector("#table tbody");
   tb.innerHTML="";
-
-  let data=snap.val()||[];
-  data.forEach(row=>{
+  (snap.val()||[]).forEach(row=>{
     let r=tb.insertRow();
     row.forEach(v=>{
       let c=r.insertCell();
       c.innerHTML="<input value='"+v+"'>";
     });
-    r.insertCell().innerHTML='<button onclick="this.parentNode.parentNode.remove();calc()">X</button>';
+    r.insertCell().innerHTML='<button onclick="this.parentNode.parentNode.remove();calc();save()">X</button>';
   });
-
   calc();
 });
 
