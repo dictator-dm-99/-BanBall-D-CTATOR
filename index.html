@@ -15,17 +15,12 @@ body{background:black;color:white;font-family:Arial;text-align:center;}
 .leagueHeader img{height:36px;background:white;padding:4px;border-radius:4px;}
 input{width:95%;padding:6px;background:#ddd;border:1px solid #888;text-align:center;}
 .loginBox input{width:160px;margin:4px;}
-#dateTop{width:200px;}
 table{width:95%;margin:auto;border-collapse:collapse;}
 th{background:#3a260c;color:#f3c87a;padding:8px;border:1px solid #555;}
 td{background:#eee;border:1px solid #888;padding:4px;}
 tfoot td{background:#111;color:white;font-weight:bold;}
 button{padding:4px 10px;margin:4px;}
 button[disabled]{opacity:.4;cursor:not-allowed;}
-#auditBox{
-  display:none;width:95%;margin:auto;background:#111;color:#0f0;
-  text-align:left;padding:10px;height:120px;overflow:auto;font-size:12px;
-}
 </style>
 </head>
 
@@ -41,12 +36,10 @@ button[disabled]{opacity:.4;cursor:not-allowed;}
 </div>
 
 <h3>น้ำ 0.85</h3>
-<input type="date" id="dateTop">
 
 <div>
 <button id="btnAdd" onclick="addRow()">+ เพิ่ม</button>
 <button id="btnSave" onclick="save()">Save</button>
-<button onclick="toggleAudit()">Audit Log</button>
 </div>
 
 <div class="leagueHeader">
@@ -72,21 +65,19 @@ button[disabled]{opacity:.4;cursor:not-allowed;}
 </tfoot>
 </table>
 
-<div id="auditBox"></div>
-
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
 firebase.initializeApp({
-  apiKey: "AIzaSyBvEX2qy63fTtzB1juZlJ8TL2VNVwJ9izE",
-  authDomain: "banball-dm-99.firebaseapp.com",
-  databaseURL: "https://banball-dm-99-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "banball-dm-99",
-  storageBucket: "banball-dm-99.firebasestorage.app",
-  messagingSenderId: "418915368955",
-  appId: "1:418915368955:web:fe42df82c554b992b9d55e"
+  apiKey: "AIzaSyD6W1ksWVLNa7susO6S-DW8TKwXskSE7_o",
+  authDomain: "banball-888.firebaseapp.com",
+  databaseURL: "https://banball-888-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "banball-888",
+  storageBucket: "banball-888.firebasestorage.app",
+  messagingSenderId: "404070899620",
+  appId: "1:404070899620:web:254e407db5907458c82b31"
 });
 
 const db=firebase.database();
@@ -107,8 +98,8 @@ function logout(){
 
 function setUI(){
   document.querySelectorAll("#table input").forEach(i=>i.disabled=!admin);
-  document.getElementById("btnAdd").disabled=!admin;
-  document.getElementById("btnSave").disabled=!admin;
+  btnAdd.disabled=!admin;
+  btnSave.disabled=!admin;
 }
 
 function addRow(){
@@ -157,19 +148,12 @@ db.ref("table").on("value",snap=>{
   tb.innerHTML="";
   (snap.val()||[]).forEach(row=>{
     let r=tb.insertRow();
-    row.forEach(v=>{
-      let c=r.insertCell();
-      c.innerHTML=`<input value="${v}">`;
-    });
+    row.forEach(v=>r.insertCell().innerHTML=`<input value="${v}" disabled>`);
     r.insertCell().innerHTML=admin?`<button onclick="removeRow(this)">X</button>`:"";
   });
   calc();
   setUI();
 });
-
-function toggleAudit(){
-  auditBox.style.display=auditBox.style.display==="none"?"block":"none";
-}
 
 setUI();
 </script>
