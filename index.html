@@ -225,18 +225,7 @@ function calc(){
   document.getElementById("sum").innerText=sum.toLocaleString();
 }
 
-let saveTimer;
-
-document.addEventListener("input",()=>{
-  calc();
-
-  if(!admin) return;
-
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=>{
-    save();
-  }, 500);
-});
+document.addEventListener("input",calc);
 
 function save(){
   if(!admin) return alert("ต้อง login");
