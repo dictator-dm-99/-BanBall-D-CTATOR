@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>D!CTATOR</title>
+
+<style>
+body{
+  background:black;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+}
+
+.logoText{
+  font-size:48px;
+  font-weight:bold;
+  margin:10px;
+}
+
+.leagueHeader{
+  width:95%;
+  margin:10px auto;
+  padding:10px;
+  background:#111;
+  color:white;
+  font-size:20px;
+  border-bottom:2px solid #444;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+}
+
+.leagueHeader img{
+  height:36px;
+  background:white;
+  padding:4px;
+  border-radius:4px;
+}
+
+input{
+  width:95%;
+  padding:6px;
+  background:#ddd;
+  border:1px solid #888;
+  text-align:center;
+}
+
+.loginBox input{
+  width:160px;
+  margin:4px;
+}
+
+#dateTop{
+  width:200px;
+}
+
+table{
+  width:95%;
+  margin:auto;
+  border-collapse:collapse;
+}
+
+th{
+  background:#3a260c;
+  color:#f3c87a;
+  padding:8px;
+  border:1px solid #555;
+}
+
+td{
+  background:#eee;
+  border:1px solid #888;
+  padding:4px;
+}
+
+tfoot td{
+  background:#111;
+  color:white;
+  font-weight:bold;
+}
+
+button{
+  padding:4px 10px;
+  margin:4px;
+}
+
+#auditBox{
+  display:none;
+  width:95%;
+  margin:auto;
+  background:#111;
+  color:#0f0;
+  text-align:left;
+  padding:10px;
+  height:120px;
+  overflow:auto;
+  font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="logoText">D<span style="color:red">!</span>CTATOR</div>
+
+<div class="loginBox">
+<input id="user" placeholder="Username">
+<input id="pass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<button onclick="logout()">Logout</button>
+</div>
+
+<h3>น้ำ 0.85</h3>
+
+<input type="date" id="dateTop">
+
+<div>
+<button onclick="addRow()">+ เพิ่ม</button>
+<button onclick="save()">Save</button>
+<button onclick="toggleAudit()">Audit Log</button>
+</div>
+
+<div class="leagueHeader">
+พรีเมียร์ลีกอังกฤษ (Premier League)
+<img src="https://upload.wikimedia.org/wikipedia/en/f/f2/Premier_League_Logo.svg">
+</div>
+
+<table id="table">
+<thead>
+<tr>
+<th>เวลา</th>
+<th>ทีมเจ้าบ้าน</th>
+<th>ราคาบอล</th>
+<th>ทีมเยือน</th>
+<th>รายชื่อ</th>
+<th>เบอร์โทร</th>
+<th>ยอดแทง</th>
+<th>-</th>
+</tr>
+</thead>
+<tbody></tbody>
+
+<tfoot>
+<tr>
+<td colspan="6">รวมทั้งหมด</td>
+<td id="sum">0</td>
+<td></td>
+</tr>
+</tfoot>
+</table>
+
+<div id="auditBox"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBvEX2qy63fTtzB1juZlJ8TL2VNVwJ9izE",
+  authDomain: "banball-dm-99.firebaseapp.com",
+  databaseURL: "https://banball-dm-99-default-rtdb.firebaseio.com/",
+  projectId: "banball-dm-99",
+  storageBucket: "banball-dm-99.firebasestorage.app",
+  messagingSenderId: "418915368955",
+  appId: "1:418915368955:web:fe42df82c554b992b9d55e"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let admin=false;
+let audit=[];
+
+function log(txt){
+  let t=new Date().toLocaleString();
+  audit.unshift(`[${t}] ${txt}`);
+  document.getElementById("auditBox").innerText=audit.join("\n");
+}
+
+function login(){
+  let u=user.value;
+  let p=pass.value;
+
+  if(u==="Yohan888" && p==="dictator_yohan888"){
+    admin=true;
+    alert("Login สำเร็จ");
+    log("LOGIN");
+    setEditable(true);
+  }else{
+    alert("ผิด");
+  }
+}
+
+function logout(){
+  admin=false;
+  log("LOGOUT");
+  setEditable(false);
+}
+
+function setEditable(v){
+  document.querySelectorAll("input").forEach(i=>{
+    if(!i.closest(".loginBox")) i.disabled=!v;
+  });
+}
+
+function addRow(){
+  let tb=document.querySelector("#table tbody");
+  let r=tb.insertRow();
+  for(let i=0;i<7;i++){
+    let c=r.insertCell();
+    c.innerHTML="<input>";
+  }
+  r.insertCell().innerHTML='<button onclick="this.parentNode.parentNode.remove();calc()">X</button>';
+}
+
+function calc(){
+  let sum=0;
+  document.querySelectorAll("#table tbody tr").forEach(r=>{
+    let v=parseFloat(r.cells[6].children[0].value)||0;
+    sum+=v;
+  });
+  document.getElementById("sum").innerText=sum.toLocaleString();
+}
+
+document.addEventListener("input",calc);
+
+function save(){
+  if(!admin) return alert("ต้อง login");
+
+  let data=[];
+  document.querySelectorAll("#table tbody tr").forEach(r=>{
+    let row=[];
+    for(let i=0;i<7;i++){
+      row.push(r.cells[i].children[0].value);
+    }
+    data.push(row);
+  });
+
+  db.ref("table").set(data);
+  log("SAVE TABLE");
+}
+
+function toggleAudit(){
+  let a=document.getElementById("auditBox");
+  a.style.display=a.style.display==="none"?"block":"none";
+}
+
+/* โหลดข้อมูล realtime */
+db.ref("table").on("value", snap=>{
+  let tb=document.querySelector("#table tbody");
+  tb.innerHTML="";
+
+  let data=snap.val()||[];
+  data.forEach(row=>{
+    let r=tb.insertRow();
+    row.forEach(v=>{
+      let c=r.insertCell();
+      c.innerHTML="<input value='"+v+"'>";
+    });
+    r.insertCell().innerHTML='<button onclick="this.parentNode.parentNode.remove();calc()">X</button>';
+  });
+
+  calc();
+});
+
+setEditable(false);
+</script>
+
+</body>
+</html>
