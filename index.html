@@ -157,12 +157,19 @@ db.ref("table").on("value",snap=>{
   tb.innerHTML="";
   (snap.val()||[]).forEach(row=>{
     let r=tb.insertRow();
-    row.forEach(v=>r.insertCell().innerHTML=`<input value="${v}" disabled>`);
+    row.forEach(v=>{
+      let c=r.insertCell();
+      c.innerHTML=`<input value="${v}">`;
+    });
     r.insertCell().innerHTML=admin?`<button onclick="removeRow(this)">X</button>`:"";
   });
   calc();
   setUI();
 });
+
+function toggleAudit(){
+  auditBox.style.display=auditBox.style.display==="none"?"block":"none";
+}
 
 setUI();
 </script>
